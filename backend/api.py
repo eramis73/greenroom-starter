@@ -11,7 +11,7 @@ Endpoint'ler:
 import os
 import json
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -19,6 +19,7 @@ from typing import Optional
 from config import configure_dspy
 from deal_parser import DealNotesParser, DealRules
 from receipt_parser import ReceiptParser, ParsedExpense
+from file_parser import parse_receipt_file
 from settlement_math import (
     calculate, TicketSale, Expense, SettlementResult
 )
@@ -163,6 +164,45 @@ def parse_receipt(req: ParseReceiptRequest):
         return ParsedExpense.from_dspy(result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"DSPy parse error: {str(e)}")
+
+
+@app.post("/parse-receipt-file", response_model=ParsedExpense)
+async def parse_receipt_file_endpoint(
+    file: UploadFile = File(...),
+    deal_context: str = Form(""),
+    show_id: Optional[str] = Form(None),
+):
+    """
+    PDF, JPG, PNG veya WEBP dosyasından gider bilgisi çıkarır.
+
+    Pipeline:
+      - Metin PDF   → pdfplumber → DSPy ReceiptParser
+      - Taranmış PDF → PyMuPDF → PNG → vision OCR → DSPy ReceiptParser
+      - Görsel       → vision OCR → DSPy ReceiptParser
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Dosya adı eksik.")
+
+    max_size = 10 * 1024 * 1024  # 10 MB
+    file_data = await file.read()
+    if len(file_data) > max_size:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Dosya çok büyük ({len(file_data)//1024} KB). Max 10 MB."
+        )
+
+    try:
+        expense = parse_receipt_file(
+            file_data=file_data,
+            filename=file.filename,
+            media_type=file.content_type or "",
+            deal_context=deal_context,
+        )
+        return expense
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Dosya parse hatası: {str(e)}")
 
 
 @app.post("/calculate", response_model=CalculateResponse)
