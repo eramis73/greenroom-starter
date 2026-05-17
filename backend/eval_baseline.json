@@ -1,0 +1,23 @@
+{
+  "label": "BASELINE (Raw Model)",
+  "avg_score": 0.875,
+  "field_accuracy": {
+    "deal_type": 0.8,
+    "guarantee": 1.0,
+    "percentage": 0.9,
+    "expense_cap": 0.8
+  },
+  "n": 10,
+  "per_example": [
+    1.0,
+    0.75,
+    1.0,
+    0.75,
+    0.75,
+    1.0,
+    0.75,
+    1.0,
+    1.0,
+    0.75
+  ]
+}

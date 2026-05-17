@@ -1,0 +1,161 @@
+{
+  "extractor.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "notes_freetext": "$1,268 guarantee vs 90% of net after expenses, whichever greater. Expenses capped $650. Hospitality cap $600.",
+        "reasoning": "The notes indicate a performance deal structure including a guarantee, a percentage of net revenue after expenses, an expense cap, and a hospitality cap. The guarantees and percentages are clearly defined, while the scope of expenses and the handling of hospitality costs are straightforward.",
+        "deal_type": "vs",
+        "guarantee_amount": 1268.0,
+        "percentage": 0.9,
+        "expense_cap": 650.0,
+        "expense_cap_scope": "[]",
+        "hospitality_cap": 600.0,
+        "hospitality_overage_treatment": "ambiguous",
+        "marketing_recoup_amount": 0.0,
+        "marketing_recoup_position": "ambiguous",
+        "walkout_pot_threshold": 0.0,
+        "walkout_pot_percentage": 0.0,
+        "tier_ratchet": "[]",
+        "ambiguities": "None",
+        "citations": "{\"guarantee_amount\": \"$1,268\", \"percentage\": \"90% of net after expenses\", \"expense_cap\": \"Expenses capped $650\", \"hospitality_cap\": \"Hospitality cap $600\"}"
+      },
+      {
+        "augmented": true,
+        "notes_freetext": "Deal: $495 vs 85/15 after expenses. Expense cap 250, hospitality cap 400.",
+        "reasoning": "The deal structure indicates a guarantee alongside a percentage of net revenue after expenses. The guarantee amount is specified as $495, and the deal includes a split of 85% to the artist and 15% to the venue after expenses. The expense cap is set at $250, while the hospitality cap is $400.",
+        "deal_type": "vs",
+        "guarantee_amount": 495.0,
+        "percentage": 0.85,
+        "expense_cap": 250.0,
+        "expense_cap_scope": "[]",
+        "hospitality_cap": 400.0,
+        "hospitality_overage_treatment": "ambiguous",
+        "marketing_recoup_amount": 0.0,
+        "marketing_recoup_position": "ambiguous",
+        "walkout_pot_threshold": 0.0,
+        "walkout_pot_percentage": 0.0,
+        "tier_ratchet": "[]",
+        "ambiguities": "ambiguous hospitality overage treatment, ambiguous marketing recoup position",
+        "citations": "{\"deal_type\":\"$495 vs 85/15 after expenses\",\"guarantee_amount\":\"$495\",\"percentage\":\"85\",\"expense_cap\":\"250\",\"hospitality_cap\":\"400\"}"
+      },
+      {
+        "augmented": true,
+        "notes_freetext": "$3,500 guarantee vs 85% of net after expenses, whichever greater. Renegotiated up from %-only deal three weeks before show — agent insisted on a floor. Expense cap $550, hospitality $300.",
+        "reasoning": "The deal includes a guarantee of $3,500 and an option for the artist to earn 85% of net revenue after expenses, whichever amount is greater. The agent successfully negotiated a guaranteed floor instead of a percentage-only deal. There is an expense cap of $550 and a hospitality cap of $300 mentioned explicitly.",
+        "deal_type": "vs",
+        "guarantee_amount": 3500.0,
+        "percentage": 0.85,
+        "expense_cap": 550.0,
+        "expense_cap_scope": "[]",
+        "hospitality_cap": 300.0,
+        "hospitality_overage_treatment": "ambiguous",
+        "marketing_recoup_amount": 0.0,
+        "marketing_recoup_position": "ambiguous",
+        "walkout_pot_threshold": 0.0,
+        "walkout_pot_percentage": 0.0,
+        "tier_ratchet": "[]",
+        "ambiguities": "\"renegotiated terms, marketing recoup treatment\"",
+        "citations": "{\n    \"deal_type\": \"vs\",\n    \"guarantee_amount\": \"$3,500 guarantee\",\n    \"percentage\": \"vs 85% of net after expenses\",\n    \"expense_cap\": \"Expense cap $550\",\n    \"hospitality_cap\": \"hospitality $300\"\n}"
+      },
+      {
+        "augmented": true,
+        "notes_freetext": "Deal: $1,267 vs 80/20 after expenses. Expense cap 650, hospitality cap 300. +$300 on sellout.",
+        "reasoning": "The deal offers a guarantee of $1,267 or 80% of net after expenses, whichever is greater. There is an expense cap of $650. Additionally, there is a hospitality cap of $300 and an extra $300 if the event sells out.",
+        "deal_type": "vs",
+        "guarantee_amount": 1267.0,
+        "percentage": 0.8,
+        "expense_cap": 650.0,
+        "expense_cap_scope": "[]",
+        "hospitality_cap": 300.0,
+        "hospitality_overage_treatment": "ambiguous",
+        "marketing_recoup_amount": 0.0,
+        "marketing_recoup_position": "ambiguous",
+        "walkout_pot_threshold": 0.0,
+        "walkout_pot_percentage": 0.0,
+        "tier_ratchet": "[{\"from_pct\":0.8,\"to_pct\":1.0,\"percentage\":0.2}]",
+        "ambiguities": "sellout terms",
+        "citations": "{\"guarantee_amount\":\"$1,267\",\"percentage\":\"80/20 after expenses\",\"expense_cap\":\"Expense cap 650\",\"hospitality_cap\":\"hospitality cap 300\",\"sellout_bonus\":\"+ $300 on sellout\"}"
+      }
+    ],
+    "signature": {
+      "instructions": "Extract structured financial settlement rules from a booker's freetext deal notes.\n\nFocus on identifying:\n- Deal type and financial structure\n- Expense caps and what falls inside/outside them\n- Where marketing recoups apply (pre-gross or inside expense cap)\n- Hospitality limits and who covers overages\n- Walkout pots and tier ratchets\n- Any language that could be interpreted multiple ways\n\nThe notes_freetext is the ground truth. Structured fields may be stale.",
+      "fields": [
+        {
+          "prefix": "Notes Freetext:",
+          "description": "Raw deal notes as written by the booker — this is the source of truth"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Deal Type:",
+          "description": "One of: flat, vs, percentage_of_net, percentage_of_gross, door"
+        },
+        {
+          "prefix": "Guarantee Amount:",
+          "description": "Artist guarantee in dollars. 0.0 if no guarantee."
+        },
+        {
+          "prefix": "Percentage:",
+          "description": "Artist percentage as decimal between 0 and 1. E.g. 0.80 for 80%. 0.0 if none."
+        },
+        {
+          "prefix": "Expense Cap:",
+          "description": "Maximum expenses passed through to artist in dollars. 0.0 if no cap."
+        },
+        {
+          "prefix": "Expense Cap Scope:",
+          "description": "JSON list of expense categories inside the cap. E.g. '[\"sound\",\"lights\",\"production\"]'"
+        },
+        {
+          "prefix": "Hospitality Cap:",
+          "description": "Hospitality spending cap in dollars. 0.0 if not specified."
+        },
+        {
+          "prefix": "Hospitality Overage Treatment:",
+          "description": "Who covers hospitality overage: 'absorbed_by_venue' or 'passed_to_artist' or 'ambiguous'"
+        },
+        {
+          "prefix": "Marketing Recoup Amount:",
+          "description": "Marketing recoup in dollars. 0.0 if none."
+        },
+        {
+          "prefix": "Marketing Recoup Position:",
+          "description": "Where recoup is deducted: 'pre_gross' (before % calc) or 'in_expenses' (inside cap) or 'ambiguous'"
+        },
+        {
+          "prefix": "Walkout Pot Threshold:",
+          "description": "Gross threshold for walkout pot in dollars. 0.0 if no walkout pot."
+        },
+        {
+          "prefix": "Walkout Pot Percentage:",
+          "description": "Artist percentage above walkout threshold (usually 1.0 = 100%). 0.0 if no walkout pot."
+        },
+        {
+          "prefix": "Tier Ratchet:",
+          "description": "JSON array of ratchet tiers [{from_pct, to_pct, percentage}] or '[]' if none."
+        },
+        {
+          "prefix": "Ambiguities:",
+          "description": "Comma-separated list of terms or clauses that could be read multiple ways. Empty string if none."
+        },
+        {
+          "prefix": "Citations:",
+          "description": "JSON object mapping each extracted field to the exact quote from the notes that sourced it."
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.11",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

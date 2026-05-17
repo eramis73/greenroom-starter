@@ -15,6 +15,10 @@ Neden BootstrapFewShot:
   python optimize.py
 """
 
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 import json
 import os
 import dspy
@@ -100,7 +104,7 @@ def metric(example: dspy.Example, prediction, trace=None) -> float:
 
 
 def optimize():
-    print("DSPy BootstrapFewShot optimizasyonu başlıyor...")
+    print("DSPy BootstrapFewShot optimizasyonu basliyor...")
     configure_dspy()
 
     examples = load_training_examples()

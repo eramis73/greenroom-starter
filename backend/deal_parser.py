@@ -104,42 +104,37 @@ class DealNotesParser(dspy.Module):
 
         result = self.extractor(notes_freetext=notes_freetext)
 
-        # ── Assert: Finansal Guardrails (hard stop, self-correction) ──
-        dspy.Assert(
-            result.guarantee_amount >= 0,
-            "Guarantee amount cannot be negative."
-        )
-        dspy.Assert(
-            0.0 <= result.percentage <= 1.0,
-            "Percentage must be between 0 and 1 (e.g. 0.80 for 80%)."
-        )
-        dspy.Assert(
-            result.expense_cap >= 0,
-            "Expense cap cannot be negative."
-        )
-        dspy.Assert(
-            result.marketing_recoup_position in ["pre_gross", "in_expenses", "ambiguous"],
-            "Marketing recoup position must be 'pre_gross', 'in_expenses', or 'ambiguous'."
-        )
-        dspy.Assert(
-            result.hospitality_overage_treatment in ["absorbed_by_venue", "passed_to_artist", "ambiguous"],
-            "Hospitality overage treatment must be one of the three valid values."
-        )
+        # ── Hard Guardrails (Assert-equivalent): financial sanity checks ──
+        # DSPy 3.x removed dspy.Assert; we implement the same semantics inline.
+        if float(result.guarantee_amount) < 0:
+            raise ValueError("Guarantee amount cannot be negative.")
+        if not (0.0 <= float(result.percentage) <= 1.0):
+            raise ValueError("Percentage must be between 0 and 1 (e.g. 0.80 for 80%).")
+        if float(result.expense_cap) < 0:
+            raise ValueError("Expense cap cannot be negative.")
+        valid_recoup = ["pre_gross", "in_expenses", "ambiguous"]
+        if result.marketing_recoup_position not in valid_recoup:
+            result = result.copy(marketing_recoup_position="ambiguous")
+        valid_hosp = ["absorbed_by_venue", "passed_to_artist", "ambiguous"]
+        if result.hospitality_overage_treatment not in valid_hosp:
+            result = result.copy(hospitality_overage_treatment="ambiguous")
 
-        # ── Suggest: Belirsizlik Uyarıları (soft, akışı durdurmaz) ──
-        dspy.Suggest(
-            result.marketing_recoup_position != "ambiguous",
-            "Marketing recoup position is ambiguous — this is the most common source of disputes (e.g. Coastal Spell $720). Clarify with agent before show night."
-        )
-        dspy.Suggest(
-            result.hospitality_overage_treatment != "ambiguous",
-            "Hospitality overage treatment is unclear. Who covers the excess?"
-        )
-        dspy.Suggest(
-            len(result.ambiguities.strip()) == 0,
-            f"Deal contains ambiguous language: {result.ambiguities}. Resolve before show night."
-        )
+        # ── Soft Suggestions (Suggest-equivalent): ambiguity detection ──
+        # These accumulate warnings without stopping the flow — surfaced in UI.
+        suggestions = []
+        if result.marketing_recoup_position == "ambiguous":
+            suggestions.append(
+                "Marketing recoup position is ambiguous — most common dispute source "
+                "(e.g. Coastal Spell $720). Clarify with agent before show night."
+            )
+        if result.hospitality_overage_treatment == "ambiguous":
+            suggestions.append("Hospitality overage treatment is unclear. Who covers the excess?")
+        if result.ambiguities.strip():
+            suggestions.append(
+                f"Deal contains ambiguous language: {result.ambiguities}. Resolve before show night."
+            )
 
+        result._suggestions = suggestions
         return result
 
 

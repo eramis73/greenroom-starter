@@ -1,0 +1,162 @@
+[
+  {
+    "notes_freetext": "$1,268 guarantee vs 90% of net after expenses, whichever greater. Expenses capped $650. Hospitality cap $600.",
+    "deal_type": "vs",
+    "guarantee_amount": 1268.0,
+    "percentage": 0.9,
+    "expense_cap": 650.0,
+    "hospitality_cap": 600.0
+  },
+  {
+    "notes_freetext": "Deal: $495 vs 85/15 after expenses. Expense cap 250, hospitality cap 400.",
+    "deal_type": "vs",
+    "guarantee_amount": 495.0,
+    "percentage": 0.85,
+    "expense_cap": 250.0,
+    "hospitality_cap": 400.0
+  },
+  {
+    "notes_freetext": "$3,500 guarantee vs 85% of net after expenses, whichever greater. Renegotiated up from %-only deal three weeks before show \u2014 agent insisted on a floor. Expense cap $550, hospitality $300.",
+    "deal_type": "percentage_of_net",
+    "guarantee_amount": 3500.0,
+    "percentage": 0.85,
+    "expense_cap": 550.0,
+    "hospitality_cap": 300.0
+  },
+  {
+    "notes_freetext": "Deal: $1,267 vs 80/20 after expenses. Expense cap 650, hospitality cap 300. +$300 on sellout.",
+    "deal_type": "vs",
+    "guarantee_amount": 1267.0,
+    "percentage": 0.8,
+    "expense_cap": 650.0,
+    "hospitality_cap": 300.0
+  },
+  {
+    "notes_freetext": "937 g'tee with escalator: 90% net at base, ratchets to 100% over 80% capacity. Expenses to 450. Ratchet: 90% to 100% over 80% sold.",
+    "deal_type": "vs",
+    "guarantee_amount": 937.0,
+    "percentage": 0.9,
+    "expense_cap": 450.0,
+    "hospitality_cap": 300.0
+  },
+  {
+    "notes_freetext": "4,310 g'tee vs 85/15 net, walkout above breakeven. Expense cap 2150, hosp $500. +$800 if attendance > 585; Walkout pot: 100% of gross above $5,200.",
+    "deal_type": "vs",
+    "guarantee_amount": 4310.0,
+    "percentage": 0.85,
+    "expense_cap": 2150.0,
+    "hospitality_cap": 500.0
+  },
+  {
+    "notes_freetext": "$1,185 vs 85% net to 80% sold, 95% above. Expense cap $600, hospitality $600. Ratchet: 85% to 95% over 80% sold.",
+    "deal_type": "vs",
+    "guarantee_amount": 1185.0,
+    "percentage": 0.85,
+    "expense_cap": 600.0,
+    "hospitality_cap": 600.0
+  },
+  {
+    "notes_freetext": "$2,593 guarantee vs 85% of net after expenses, whichever greater. Expenses capped $1300. Hospitality cap $500.",
+    "deal_type": "vs",
+    "guarantee_amount": 2593.0,
+    "percentage": 0.85,
+    "expense_cap": 1300.0,
+    "hospitality_cap": 500.0
+  },
+  {
+    "notes_freetext": "2,635 g'tee with escalator: 85% net at base, ratchets to 95% over 80% capacity. Expenses to 1300. Ratchet: 85% to 95% over 80% sold.",
+    "deal_type": "vs",
+    "guarantee_amount": 2635.0,
+    "percentage": 0.85,
+    "expense_cap": 1300.0,
+    "hospitality_cap": 400.0
+  },
+  {
+    "notes_freetext": "8,575 g'tee vs 85% of net. Expenses to 4300. Hospitality $600. Tiered net split: 60% / 70% over $34,000.",
+    "deal_type": "vs",
+    "guarantee_amount": 8575.0,
+    "percentage": 0.85,
+    "expense_cap": 4300.0,
+    "hospitality_cap": 600.0
+  },
+  {
+    "notes_freetext": "Deal: $1,762 vs 85/15 after expenses. Expense cap 900, hospitality cap 600. +$250 if gross > $7,000.",
+    "deal_type": "vs",
+    "guarantee_amount": 1762.0,
+    "percentage": 0.85,
+    "expense_cap": 900.0,
+    "hospitality_cap": 600.0
+  },
+  {
+    "notes_freetext": "$2,130 guarantee vs 85% of net after expenses, whichever greater. Expenses capped $1050. Hospitality cap $600.",
+    "deal_type": "vs",
+    "guarantee_amount": 2130.0,
+    "percentage": 0.85,
+    "expense_cap": 1050.0,
+    "hospitality_cap": 600.0
+  },
+  {
+    "notes_freetext": "1,526 g'tee vs 70% of net. Expenses to 750. Hospitality $300.",
+    "deal_type": "vs",
+    "guarantee_amount": 1526.0,
+    "percentage": 0.7,
+    "expense_cap": 750.0,
+    "hospitality_cap": 300.0
+  },
+  {
+    "notes_freetext": "Deal: $2,392 vs 70/30 after expenses. Expense cap 1200, hospitality cap 400.",
+    "deal_type": "vs",
+    "guarantee_amount": 2392.0,
+    "percentage": 0.7,
+    "expense_cap": 1200.0,
+    "hospitality_cap": 400.0
+  },
+  {
+    "notes_freetext": "1,213 g'tee vs 85% gross \u2014 no expenses come out. Simpler math, riskier for venue. Hosp $400.",
+    "deal_type": "vs",
+    "guarantee_amount": 1213.0,
+    "percentage": 0.85,
+    "expense_cap": 0.0,
+    "hospitality_cap": 400.0
+  },
+  {
+    "notes_freetext": "$1,961 guarantee vs 90% of net after expenses, whichever greater. Expenses capped $1000. Hospitality cap $500.",
+    "deal_type": "vs",
+    "guarantee_amount": 1961.0,
+    "percentage": 0.9,
+    "expense_cap": 1000.0,
+    "hospitality_cap": 500.0
+  },
+  {
+    "notes_freetext": "$1,424 vs 80% net + walkout pot. After breakeven on guarantee + expenses, all incremental gross goes to artist. Hospitality cap $400.",
+    "deal_type": "vs",
+    "guarantee_amount": 1424.0,
+    "percentage": 0.8,
+    "expense_cap": 700.0,
+    "hospitality_cap": 400.0
+  },
+  {
+    "notes_freetext": "$5,287 vs 90% of GROSS (no expense deductions), whichever greater. Hospitality cap $300. +$800 if gross > $21,000; +$800 if gross > $29,000.",
+    "deal_type": "vs",
+    "guarantee_amount": 5287.0,
+    "percentage": 0.9,
+    "expense_cap": 0.0,
+    "hospitality_cap": 300.0
+  },
+  {
+    "notes_freetext": "Deal: $4,960 vs 70/30 after expenses. Expense cap 2500, hospitality cap 500.",
+    "deal_type": "vs",
+    "guarantee_amount": 4960.0,
+    "percentage": 0.7,
+    "expense_cap": 2500.0,
+    "hospitality_cap": 500.0
+  },
+  {
+    "notes_freetext": "3,283 g'tee vs 85% gross \u2014 no expenses come out. Simpler math, riskier for venue. Hosp $300.",
+    "deal_type": "vs",
+    "guarantee_amount": 3283.0,
+    "percentage": 0.85,
+    "expense_cap": 0.0,
+    "hospitality_cap": 300.0
+  }
+]

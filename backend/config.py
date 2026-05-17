@@ -1,5 +1,17 @@
-import dspy
+import ssl
 import os
+import dspy
+
+# Corporate/Windows SSL interception fix — must run before litellm is imported
+ssl._create_default_https_context = ssl._create_unverified_context
+os.environ.setdefault("CURL_CA_BUNDLE", "")
+os.environ.setdefault("REQUESTS_CA_BUNDLE", "")
+
+try:
+    import litellm
+    litellm.ssl_verify = False
+except Exception:
+    pass
 
 
 def configure_dspy():
