@@ -1,18 +1,34 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Calendar, Users, BarChart3 } from "lucide-react";
+import { Calendar, Users, BarChart3, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/shows", label: "Shows", icon: Calendar },
   { href: "/artists", label: "Artists", icon: Users },
   { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/settings", label: "AI Settings", icon: Sparkles },
 ];
 
 export function NavLinks() {
   const pathname = usePathname();
+  const [backendRunning, setBackendRunning] = useState(false);
+
+  useEffect(() => {
+    async function poll() {
+      const res = await fetch("/api/backend/status").catch(() => null);
+      if (res?.ok) {
+        const d = await res.json();
+        setBackendRunning(d.running);
+      }
+    }
+    poll();
+    const id = setInterval(poll, 6000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <>
@@ -20,6 +36,7 @@ export function NavLinks() {
         const Icon = item.icon;
         const active =
           pathname === item.href || pathname.startsWith(item.href + "/");
+        const isAI = item.href === "/settings";
         return (
           <Link
             key={item.href}
@@ -38,6 +55,14 @@ export function NavLinks() {
               )}
             />
             {item.label}
+            {isAI && (
+              <span
+                className={cn(
+                  "ml-auto h-1.5 w-1.5 rounded-full",
+                  backendRunning ? "bg-emerald-500" : "bg-ink-300"
+                )}
+              />
+            )}
           </Link>
         );
       })}
