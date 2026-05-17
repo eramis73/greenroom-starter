@@ -168,6 +168,130 @@ export function calculateSettlement(input: CalcInput): SettlementCalculation {
     };
   }
 
+  // ---------- percentage of net ----------
+  if (deal.dealType === "percentage_of_net") {
+    if (deal.percentage == null) {
+      return {
+        supported: false,
+        reason: "Percentage-of-net deal is missing a percentage.",
+        dealType: deal.dealType,
+      };
+    }
+    const expensesApplied = deal.expenseCap
+      ? Math.min(totalExpenses, deal.expenseCap)
+      : totalExpenses;
+    const capHit = deal.expenseCap != null && totalExpenses > deal.expenseCap;
+    const netAfterExpenses = netBoxOffice - expensesApplied;
+    const payout = netAfterExpenses * deal.percentage;
+    const bonusResult = applyBonuses(parseBonuses(deal), {
+      gross: grossBoxOffice,
+      tickets,
+      capacity: venueCapacity,
+    });
+
+    return {
+      supported: true,
+      grossBoxOffice,
+      netBoxOffice,
+      totalExpenses,
+      totalToArtist: payout + bonusResult.totalApplied,
+      steps: [
+        { label: "Gross box office", value: grossBoxOffice },
+        { label: "Ticket fees", value: -totalFees, note: "Platform & CC fees" },
+        { label: "Net box office", value: netBoxOffice },
+        {
+          label: capHit
+            ? `Expenses (capped at ${formatMoneyCents(deal.expenseCap!)})`
+            : "Expenses (passed through)",
+          value: -expensesApplied,
+          note: capHit
+            ? `Raw expenses ${formatMoneyCents(totalExpenses)} → capped`
+            : undefined,
+        },
+        { label: "Net after expenses", value: netAfterExpenses },
+        {
+          label: `× ${(deal.percentage * 100).toFixed(0)}% of net`,
+          value: payout,
+        },
+        ...bonusResult.applied.map((b) => ({
+          label: b.label,
+          value: b.amount,
+          note: b.reason,
+        })),
+      ],
+      finalFormula: `net after expenses × ${deal.percentage} = ${(payout + bonusResult.totalApplied).toFixed(2)}`,
+      bonusesApplied: bonusResult.applied,
+      bonusesNotTriggered: bonusResult.notTriggered,
+    };
+  }
+
+  // ---------- vs deal (guarantee vs % of net) ----------
+  if (deal.dealType === "vs") {
+    if (deal.guaranteeAmount == null || deal.percentage == null) {
+      return {
+        supported: false,
+        reason: "Vs deal requires both a guarantee amount and a percentage.",
+        dealType: deal.dealType,
+      };
+    }
+    const expensesApplied = deal.expenseCap
+      ? Math.min(totalExpenses, deal.expenseCap)
+      : totalExpenses;
+    const capHit = deal.expenseCap != null && totalExpenses > deal.expenseCap;
+    const netAfterExpenses = netBoxOffice - expensesApplied;
+    const pctPayout = netAfterExpenses * deal.percentage;
+    const guaranteeWins = deal.guaranteeAmount >= pctPayout;
+    const basePayout = guaranteeWins ? deal.guaranteeAmount : pctPayout;
+    const bonusResult = applyBonuses(parseBonuses(deal), {
+      gross: grossBoxOffice,
+      tickets,
+      capacity: venueCapacity,
+    });
+
+    return {
+      supported: true,
+      grossBoxOffice,
+      netBoxOffice,
+      totalExpenses,
+      totalToArtist: basePayout + bonusResult.totalApplied,
+      steps: [
+        { label: "Gross box office", value: grossBoxOffice },
+        { label: "Ticket fees", value: -totalFees, note: "Platform & CC fees" },
+        { label: "Net box office", value: netBoxOffice },
+        {
+          label: capHit
+            ? `Expenses (capped at ${formatMoneyCents(deal.expenseCap!)})`
+            : "Expenses (passed through)",
+          value: -expensesApplied,
+          note: capHit
+            ? `Raw ${formatMoneyCents(totalExpenses)} → capped at ${formatMoneyCents(deal.expenseCap!)}`
+            : undefined,
+        },
+        { label: "Net after expenses", value: netAfterExpenses },
+        {
+          label: `× ${(deal.percentage * 100).toFixed(0)}% of net`,
+          value: pctPayout,
+        },
+        { label: "Guarantee", value: deal.guaranteeAmount },
+        {
+          label: guaranteeWins ? "→ Guarantee wins" : "→ Percentage wins",
+          value: basePayout,
+          note: guaranteeWins
+            ? `Guarantee ${formatMoneyCents(deal.guaranteeAmount)} ≥ Percentage ${formatMoneyCents(pctPayout)}`
+            : `Percentage ${formatMoneyCents(pctPayout)} > Guarantee ${formatMoneyCents(deal.guaranteeAmount)}`,
+        },
+        ...bonusResult.applied.map((b) => ({
+          label: b.label,
+          value: b.amount,
+          note: b.reason,
+        })),
+      ],
+      finalFormula: `max(${deal.guaranteeAmount} guarantee, ${deal.percentage} × net) → ${guaranteeWins ? "guarantee" : "percentage"} wins = ${(basePayout + bonusResult.totalApplied).toFixed(2)}`,
+      bonusesApplied: bonusResult.applied,
+      bonusesNotTriggered: bonusResult.notTriggered,
+    };
+  }
+
   // ---------- everything else: not supported ----------
   const friendlyName: Record<Deal["dealType"], string> = {
     flat: "Flat guarantee",
@@ -184,6 +308,10 @@ export function calculateSettlement(input: CalcInput): SettlementCalculation {
       `${friendlyName[deal.dealType]} deals aren't supported in the in-app tool yet. ` +
       `Power users at venues like The Crescent default to spreadsheets for these.`,
   };
+}
+
+function formatMoneyCents(amount: number): string {
+  return `$${amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 /** Evaluate a list of bonuses against the show's actual numbers. */

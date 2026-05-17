@@ -29,6 +29,14 @@ import {
 } from "@/lib/format";
 import type { Settlement, Recoup } from "@/db/schema";
 import { Logomark } from "@/components/brand/logo";
+import { DealNotesAIPanel } from "./DealNotesAIPanel";
+import { ReceiptAIPanel } from "./ReceiptAIPanel";
+
+function looksPositive(text: string | null | undefined): boolean {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  return /\b(looks good|lgtm|approved|ok|okay|good|sounds good|perfect|great|all good|confirmed)\b|👍|✓|✅/.test(lower);
+}
 
 const RECOUP_LABELS: Record<Recoup["category"], string> = {
   marketing: "Marketing",
@@ -122,6 +130,23 @@ export default async function SettlePage({
         </div>
       )}
 
+      {/* Data integrity warning: disputed status but positive TM sign-off */}
+      {settlement?.status === "disputed" && looksPositive(settlement.signoffText) && (
+        <div className="mb-8 rounded-lg border border-amber-300/60 bg-amber-50/60 p-5 flex gap-3">
+          <AlertTriangle className="h-4 w-4 text-amber-700 mt-0.5 shrink-0" />
+          <div>
+            <div className="text-[13px] font-semibold text-amber-800">
+              Status mismatch — TM signed off positively but settlement is still &ldquo;Disputed&rdquo;
+            </div>
+            <p className="text-[12.5px] text-ink-600 mt-1 leading-relaxed">
+              The tour manager&apos;s sign-off reads{" "}
+              <span className="font-medium">&ldquo;{settlement.signoffText}&rdquo;</span>.
+              The dispute flag may not have been cleared. Was this resolved?
+            </p>
+          </div>
+        </div>
+      )}
+
       {settlement && (
         <LifecycleBar settlement={settlement} disputedRecoups={disputedRecoups.length} />
       )}
@@ -147,6 +172,23 @@ export default async function SettlePage({
         {settlement && (settlement.signoffText || settlement.notes) && (
           <SignoffSection settlement={settlement} />
         )}
+
+        {/* AI-powered panels */}
+        {deal.dealNotesFreetext && (
+          <DealNotesAIPanel
+            dealNotesFreetext={deal.dealNotesFreetext}
+            showId={show.id}
+          />
+        )}
+
+        <ReceiptAIPanel
+          dealContext={[
+            deal.dealType,
+            deal.guaranteeAmount != null ? `guarantee $${deal.guaranteeAmount.toLocaleString()}` : "",
+            deal.percentage != null ? `${(deal.percentage * 100).toFixed(0)}% split` : "",
+            deal.expenseCap != null ? `expense cap $${deal.expenseCap.toLocaleString()}` : "",
+          ].filter(Boolean).join(", ")}
+        />
       </div>
 
       <div className="mt-16 pt-10 border-t border-ink-200/60">
