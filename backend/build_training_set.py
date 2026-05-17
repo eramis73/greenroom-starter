@@ -1,8 +1,21 @@
 """
-BootstrapFewShot için training seti oluşturur.
+BootstrapFewShot için Gold Standard training seti oluşturur.
 
-DB'deki deals tablosundan hem prose notu hem structured field'ları
-dolu olan kayıtları alır. Bunlar labeled ground truth olarak kullanılır.
+Sadece şu kriterleri karşılayan deal'leri alır:
+  1. deal_notes_freetext dolu ve 20+ karakter
+  2. Structured fields (guarantee, percentage) dolu
+  3. Settlement status = 'finalized' veya 'paid'
+     → her iki tarafın onayladığı, para transferi gerçekleşmiş deal'ler
+  4. disputed_at IS NULL
+     → dispute yaşanmış kayıtlar gürültü getirir; structured field'lar
+        dispute sürecinde değişmiş olabilir, freetext ile çelişir
+
+Neden bu filtre kritik:
+  - Dispute'lu deal'lerde freetext ile structured field arasındaki uyumsuzluk
+    kasıtlıdır (zaten ihtilaf konusu bu). Bu kayıtları LLM'e öğretmek
+    modeli yanlış yönde optimize eder.
+  - 'finalized'/'paid' = ground truth doğrulanmış demek. İki taraf da
+    rakamları kabul etmiş, structured field güvenilir.
 
 DSPy'ın BootstrapFewShot'u bu örneklere bakarak prompt'u otomatik
 optimize eder — elle "lütfen doğru hesapla" yazmak yerine.
@@ -25,8 +38,16 @@ TRAINING_EXAMPLES_PATH = os.path.join(
 
 async def extract_training_examples(db_path: str, limit: int = 20) -> list[dict]:
     """
-    DB'den hem notes_freetext hem structured fields dolu olan
-    deal'leri çek. Bunlar DSPy için labeled examples.
+    Gold Standard filtresi:
+      - deal_notes_freetext dolu (> 20 karakter)
+      - guarantee_amount ve percentage structured olarak girilmiş
+      - Settlement finalized veya paid (iki taraf onaylamış)
+      - disputed_at IS NULL (hiç dispute yaşanmamış)
+
+    Bu filtre BootstrapFewShot için en güvenilir labeled set'i üretir.
+    Dispute'lu örnekleri dışarıda bırakmak modelin doğruluğunu artırır
+    çünkü dispute = structured field ile freetext'in birbiriyle çeliştiği
+    kayıt demektir.
     """
     client = create_client(url=f"file:{db_path}")
 
@@ -38,16 +59,20 @@ async def extract_training_examples(db_path: str, limit: int = 20) -> list[dict]
             d.percentage,
             d.expense_cap,
             d.hospitality_cap,
-            ar.name as artist,
-            sh.date
+            ar.name  AS artist,
+            sh.date,
+            s.status AS settlement_status
         FROM deals d
-        JOIN shows sh ON d.show_id = sh.id
-        JOIN artists ar ON sh.artist_id = ar.id
+        JOIN shows      sh ON d.show_id = sh.id
+        JOIN artists    ar ON sh.artist_id = ar.id
+        JOIN settlements s ON s.show_id = sh.id
         WHERE d.deal_notes_freetext IS NOT NULL
           AND length(d.deal_notes_freetext) > 20
           AND d.deal_type IN ('vs', 'percentage_of_net', 'flat')
           AND d.guarantee_amount IS NOT NULL
           AND d.percentage IS NOT NULL
+          AND s.status IN ('finalized', 'paid')
+          AND s.disputed_at IS NULL
         ORDER BY sh.date DESC
         LIMIT ?
     """, [limit])
@@ -59,22 +84,29 @@ async def extract_training_examples(db_path: str, limit: int = 20) -> list[dict]
 def rows_to_dspy_examples(rows: list) -> list[dspy.Example]:
     """
     DB satırlarını DSPy Example nesnelerine çevir.
+    Sütun sırası: notes, deal_type, guarantee, percentage,
+                  expense_cap, hospitality_cap, artist, date, settlement_status
     """
     examples = []
     for row in rows:
-        notes = row[0] or ""
-        deal_type = row[1] or "vs"
-        guarantee = float(row[2] or 0)
-        percentage = float(row[3] or 0)
-        expense_cap = float(row[4] or 0)
-        hospitality_cap = float(row[5] or 0)
+        notes            = row[0] or ""
+        deal_type        = row[1] or "vs"
+        guarantee        = float(row[2] or 0)
+        percentage       = float(row[3] or 0)
+        expense_cap      = float(row[4] or 0)
+        hospitality_cap  = float(row[5] or 0)
+        artist           = row[6] or "Unknown"
+        date             = row[7] or ""
+        settlement_status = row[8] or ""
 
         if not notes.strip():
             continue
 
+        print(f"  ✓ [{settlement_status:10s}] {artist[:30]:<30s} {date}  "
+              f"{deal_type}, ${guarantee:,.0f}, {percentage*100:.0f}%")
+
         example = dspy.Example(
             notes_freetext=notes,
-            # Ground truth (bu değerleri DSPy parser üretmeli)
             deal_type=deal_type,
             guarantee_amount=guarantee,
             percentage=percentage,
@@ -88,12 +120,13 @@ def rows_to_dspy_examples(rows: list) -> list[dspy.Example]:
 
 
 async def build_and_save(db_path: str):
-    print(f"DB'den training örnekleri çekiliyor: {db_path}")
+    print(f"DB'den Gold Standard training örnekleri çekiliyor: {db_path}")
+    print("Filtre: finalized/paid settlement + disputed_at IS NULL\n")
     rows = await extract_training_examples(db_path)
-    print(f"{len(rows)} örnek bulundu")
+    print(f"\n{len(rows)} Gold Standard örnek bulundu")
 
     examples = rows_to_dspy_examples(rows)
-    print(f"{len(examples)} geçerli training örneği oluşturuldu")
+    print(f"{len(examples)} geçerli DSPy Example oluşturuldu")
 
     # JSON olarak kaydet (DSPy optimize.py için)
     serialized = [
