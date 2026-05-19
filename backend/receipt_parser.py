@@ -94,33 +94,16 @@ class ReceiptParser(dspy.Module):
             deal_context=deal_context
         )
 
-        # ── Assert: Finansal Guardrails ──
-        dspy.Assert(
-            float(result.amount) > 0,
-            "Expense amount must be positive."
-        )
-        dspy.Assert(
-            result.category in VALID_CATEGORIES,
-            f"Category must be one of: {', '.join(VALID_CATEGORIES)}"
-        )
-        dspy.Assert(
-            float(result.amount) < 50_000,
-            "Amount over $50,000 is likely a parsing error. Check the receipt."
-        )
-        dspy.Assert(
-            result.confidence in ["high", "medium", "low"],
-            "Confidence must be 'high', 'medium', or 'low'."
-        )
-
-        # ── Suggest: Dikkat Gerektiren Durumlar ──
-        dspy.Suggest(
-            result.confidence != "low",
-            "Low confidence in amount extraction. Mariana should verify manually before adding."
-        )
-        dspy.Suggest(
-            result.category != "other",
-            "Could not classify expense into a standard category. Consider reviewing manually."
-        )
+        # ── Hard guardrails (DSPy 3.x: inline validation) ──
+        amount = float(result.amount)
+        if amount <= 0:
+            raise ValueError("Expense amount must be positive.")
+        if amount >= 50_000:
+            raise ValueError(f"Amount ${amount:,.0f} is likely a parsing error. Check the receipt.")
+        if result.category not in VALID_CATEGORIES:
+            result.category = "other"
+        if result.confidence not in ["high", "medium", "low"]:
+            result.confidence = "low"
 
         return result
 

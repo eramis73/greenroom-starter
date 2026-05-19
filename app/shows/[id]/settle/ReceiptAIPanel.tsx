@@ -329,7 +329,7 @@ export function ReceiptAIPanel({ dealContext }: { dealContext: string }) {
                     </div>
                   </div>
 
-                  {result.notes && (
+                  {result.notes && result.notes.toLowerCase() !== "none" && (
                     <div className="rounded-md bg-amber-50 border border-amber-200/60 px-3 py-2 text-[12px] text-amber-800">
                       {result.notes}
                     </div>

@@ -198,9 +198,9 @@ def compare():
         opt = json.load(f)
 
     print("\n" + "="*60)
-    print("  BASELINE vs OPTIMIZED KARSILASTIRMA")
+    print("  BASELINE vs OPTIMIZED — COMPARISON")
     print("="*60)
-    print(f"  {'Metrik':<25s}  {'Baseline':>10s}  {'Optimized':>10s}  {'Degisim':>10s}")
+    print(f"  {'Metric':<25s}  {'Baseline':>10s}  {'Optimized':>10s}  {'Delta':>10s}")
     print(f"  {'-'*25}  {'-'*10}  {'-'*10}  {'-'*10}")
 
     def row(label, b, o):
@@ -210,7 +210,7 @@ def compare():
         sign = "+" if delta >= 0 else ""
         print(f"  {label:<25s}  {b:>9.1%}  {o:>9.1%}  {sign}{delta:>8.1%}")
 
-    row("Ortalama skor", base["avg_score"], opt["avg_score"])
+    row("Average score", base["avg_score"], opt["avg_score"])
     for field in ["deal_type", "guarantee", "percentage", "expense_cap"]:
         b_val = base["field_accuracy"].get(field)
         o_val = opt["field_accuracy"].get(field)
@@ -218,7 +218,7 @@ def compare():
             row(f"  {field}", b_val, o_val)
 
     delta_avg = opt["avg_score"] - base["avg_score"]
-    print(f"\n  Sonuc: BootstrapFewShot ile ortalama skor {'+' if delta_avg >= 0 else ''}{delta_avg:.1%} degisti.")
+    print(f"\n  Result: BootstrapFewShot improved average score by {'+' if delta_avg >= 0 else ''}{delta_avg:.1%}.")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

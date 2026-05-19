@@ -65,17 +65,28 @@ export async function POST(req: NextRequest) {
 
   const backendDir = path.join(process.cwd(), "backend");
 
-  // On Windows "python" is the standard; on Unix try "python3" first
-  const pythonCmd = process.platform === "win32" ? "python" : "python3";
+  const pythonCmd =
+    process.platform === "win32"
+      ? "C:\\Program Files\\Python311\\python.exe"
+      : "python3";
 
   try {
     const proc = spawn(pythonCmd, ["api.py"], {
       cwd: backendDir,
       env,
       stdio: "pipe",
+      shell: process.platform === "win32",
     });
 
-    proc.on("exit", () => {
+    proc.stderr?.on("data", (d: Buffer) =>
+      console.error("[backend stderr]", d.toString())
+    );
+    proc.stdout?.on("data", (d: Buffer) =>
+      console.log("[backend stdout]", d.toString())
+    );
+
+    proc.on("exit", (code) => {
+      console.log("[backend] process exited with code", code);
       if (global.__backendProcess === proc) {
         global.__backendProcess = null;
         global.__backendModel = null;
@@ -85,8 +96,8 @@ export async function POST(req: NextRequest) {
     global.__backendProcess = proc;
     global.__backendModel = dspyModel;
 
-    // Give uvicorn time to boot
-    for (let i = 0; i < 8; i++) {
+    // Give uvicorn time to boot (Windows Python startup can take 10+ seconds)
+    for (let i = 0; i < 24; i++) {
       await sleep(500);
       if (await checkHealth()) {
         return NextResponse.json({ status: "running", model: dspyModel });
@@ -94,7 +105,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Backend started but didn't respond within 4 s" },
+      { error: "Backend started but didn't respond within 12 s" },
       { status: 500 }
     );
   } catch (err) {

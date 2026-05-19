@@ -60,7 +60,10 @@ export function DealNotesAIPanel({
     }
   }
 
-  const hasAmbiguities = result && result.ambiguities.length > 0;
+  const realAmbiguities = result
+    ? result.ambiguities.filter((a) => a.trim().toLowerCase() !== "none" && a.trim() !== "")
+    : [];
+  const hasAmbiguities = realAmbiguities.length > 0;
   const citationEntries = result ? Object.entries(result.citations) : [];
 
   return (
@@ -125,7 +128,7 @@ export function DealNotesAIPanel({
                     {result.ambiguities.length} ambiguit{result.ambiguities.length === 1 ? "y" : "ies"} detected — resolve before show night
                   </div>
                   <ul className="space-y-0.5">
-                    {result.ambiguities.map((a, i) => (
+                    {realAmbiguities.map((a, i) => (
                       <li key={i} className="text-[12px] text-amber-700">
                         · {a}
                       </li>
@@ -135,8 +138,8 @@ export function DealNotesAIPanel({
               </div>
             )}
 
-            {/* Marketing recoup position warning */}
-            {result.marketing_recoup_position === "ambiguous" && (
+            {/* Marketing recoup position warning — only when a recoup actually exists */}
+            {result.marketing_recoup_position === "ambiguous" && result.marketing_recoup_amount > 0 && (
               <div className="rounded-lg bg-rose-50 border border-rose-200/60 p-4 text-[12.5px] text-rose-800">
                 <span className="font-semibold">Marketing recoup position is ambiguous.</span>{" "}
                 "Against gross" vs "inside cap" — this is the Coastal Spell dispute pattern.
@@ -253,7 +256,7 @@ function RuleField({
   return (
     <div className={`rounded-lg p-3 ring-1 ring-inset ${highlight ? "bg-amber-50 ring-amber-200/80" : "bg-canvas-soft ring-ink-200/60"}`}>
       <div className="text-[10px] text-ink-400 uppercase tracking-wide mb-1">{label}</div>
-      <div className={`text-[13px] font-mono font-medium ${highlight ? "text-amber-800" : "text-ink-900"}`}>
+      <div className={`text-[13px] font-mono font-medium break-all ${highlight ? "text-amber-800" : "text-ink-900"}`}>
         {value}
       </div>
       {sub && (

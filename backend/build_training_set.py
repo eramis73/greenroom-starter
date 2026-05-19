@@ -102,7 +102,7 @@ def rows_to_dspy_examples(rows: list) -> list[dspy.Example]:
         if not notes.strip():
             continue
 
-        print(f"  ✓ [{settlement_status:10s}] {artist[:30]:<30s} {date}  "
+        print(f"  OK [{settlement_status:10s}] {artist[:30]:<30s} {date}  "
               f"{deal_type}, ${guarantee:,.0f}, {percentage*100:.0f}%")
 
         example = dspy.Example(
@@ -120,13 +120,13 @@ def rows_to_dspy_examples(rows: list) -> list[dspy.Example]:
 
 
 async def build_and_save(db_path: str):
-    print(f"DB'den Gold Standard training örnekleri çekiliyor: {db_path}")
+    print(f"DB'den Gold Standard training ornekleri cekiliyor: {db_path}")
     print("Filtre: finalized/paid settlement + disputed_at IS NULL\n")
     rows = await extract_training_examples(db_path)
-    print(f"\n{len(rows)} Gold Standard örnek bulundu")
+    print(f"\n{len(rows)} Gold Standard ornek bulundu")
 
     examples = rows_to_dspy_examples(rows)
-    print(f"{len(examples)} geçerli DSPy Example oluşturuldu")
+    print(f"{len(examples)} gecerli DSPy Example olusturuldu")
 
     # JSON olarak kaydet (DSPy optimize.py için)
     serialized = [
